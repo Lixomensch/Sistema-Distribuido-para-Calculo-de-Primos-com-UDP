@@ -1,38 +1,56 @@
+"""PrimeServer module."""
 import json
 import socket
 import threading
 
 
-def find_primes(start, end):
-    """Retorna uma lista de números primos no intervalo [start, end]."""
-    primes = []
-    for num in range(start, end + 1):
-        if num > 1:
-            for i in range(2, int(num ** 0.5) + 1):
-                if num % i == 0:
-                    break
-            else:
-                primes.append(num)
-    return primes
-
-
 class PrimeServer:
+    """PrimeServer class represents a server that handles incoming requests from clients."""
+
     def __init__(self, host='localhost',
                  port=9999,
                  total_range=(1, 100000),
                  chunk_size=5000):
-        self.host = host
-        self.port = port
+        """
+        Initializes a PrimeServer object with the given parameters.
+
+        Args:
+            host (str): The hostname or IP address of the server.
+            port (int): The port number of the server.
+            total_range (tuple): The start and end of the range of numbers to be checked.
+            chunk_size (int): The number of numbers to be checked for primality in each task.
+
+        Attributes:
+            host (str): The hostname or IP address of the server.
+            port (int): The port number of the server.
+            total_range (tuple): The start and end of the range of numbers to be checked.
+            chunk_size (int): The number of numbers to be checked for primality in each task.
+            prime_numbers (list): The list of prime numbers found by the server.
+            current_start (int): The start of the current task range.
+            lock (threading.Lock): A lock to synchronize access to the server's.
+            server_socket (socket.socket): The server socket object.
+        """
         self.total_range = total_range
         self.chunk_size = chunk_size
         self.prime_numbers = []
         self.current_start = total_range[0]
         self.lock = threading.Lock()
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.server_socket.bind((self.host, self.port))
-        print(f"Servidor iniciado em {self.host}:{self.port}")
+        self.server_socket.bind((host, port))
+        print(f"Servidor iniciado em {host}:{port}")
 
     def get_next_task(self):
+        """
+        Returns the next task range (start, end) to be processed.
+
+        The range is a tuple of two integers, start and end, representing
+        the lower and upper bounds of the range to be processed.
+
+        The range is chosen such that its size is less than or equal to
+        self.chunk_size.
+
+        This method is thread-safe.
+        """
         with self.lock:
             if self.current_start > self.total_range[1]:
                 return None
@@ -42,6 +60,20 @@ class PrimeServer:
             return (start, end)
 
     def handle_client(self, data, client_address):
+        """
+        Handles incoming client requests by processing task requests or results.
+
+        Args:
+            data (bytes): The incoming data from the client, expected to be a JSON-encoded message.
+            client_address (tuple): The address of the client as a (host, port) tuple.
+
+        The function decodes the incoming message and checks its type. If it's a "request",
+        the next task range is retrieved and sent to the client. If there are no tasks left,
+        a "done" message is sent. If it's a "result", the list of prime numbers received is
+        added to the server's list of primes.
+
+        This method is thread-safe when modifying the server's list of prime numbers.
+        """
         message = json.loads(data.decode('utf-8'))
         if message["type"] == "request":
             task = self.get_next_task()
@@ -55,18 +87,26 @@ class PrimeServer:
                 self.prime_numbers.extend(message["primes"])
 
     def run(self):
+        """
+        Runs the server, listening for incoming client requests and processing.
+
+        This method is the main entry point for the server and is responsible for
+        handling all incoming client requests and processing the responses.
+
+        During execution, the server will print the total number of primes found
+        and save the results to a file named "primes.txt" in the "data" directory.
+        The server will also print a message indicating that the results have been
+        saved.
+
+        After execution, the server socket is closed.
+        """
         while True:
             data, client_address = self.server_socket.recvfrom(4096)
             self.handle_client(data, client_address)
             if self.current_start > self.total_range[1]:
                 break
         print(f"Total de primos encontrados: {len(self.prime_numbers)}")
-        with open("data/primes.txt", "w") as f:
+        with open("data/primes.txt", "w", encoding="utf-8") as f:
             f.write("\n".join(map(str, self.prime_numbers)))
         print("Resultados salvos em primes.txt")
         self.server_socket.close()
-
-
-if __name__ == "__main__":
-    server = PrimeServer()
-    server.run()
