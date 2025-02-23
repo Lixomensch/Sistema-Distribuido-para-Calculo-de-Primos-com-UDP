@@ -37,6 +37,7 @@ class PrimeServer:
         self.lock = threading.Lock()
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.server_socket.bind((host, port))
+        self.client_addresses = []
         print(f"Servidor iniciado em {host}:{port}")
 
     def get_next_task(self):
@@ -71,20 +72,27 @@ class PrimeServer:
         the next task range is retrieved and sent to the client. If there are no tasks left,
         a "done" message is sent. If it's a "result", the list of prime numbers received is
         added to the server's list of primes.
-
-        This method is thread-safe when modifying the server's list of prime numbers.
         """
         message = json.loads(data.decode('utf-8'))
         if message["type"] == "request":
             task = self.get_next_task()
             if task:
                 response = json.dumps({"type": "task", "range": list(task)})
+                self.client_addresses.append(client_address)
             else:
                 response = json.dumps({"type": "done"})
+                self.client_addresses.append(client_address)
             self.server_socket.sendto(response.encode('utf-8'), client_address)
         elif message["type"] == "result":
             with self.lock:
                 self.prime_numbers.extend(message["primes"])
+
+    def send_done(self):
+        """Sends a 'done' message to all connected clients after completing the task."""
+        done_message = json.dumps({"type": "done"})
+        for client_address in self.client_addresses:
+            self.server_socket.sendto(
+                done_message.encode('utf-8'), client_address)
 
     def run(self):
         """
@@ -109,4 +117,11 @@ class PrimeServer:
         with open("data/primes.txt", "w", encoding="utf-8") as f:
             f.write("\n".join(map(str, self.prime_numbers)))
         print("Resultados salvos em primes.txt")
+
+        self.send_done()
         self.server_socket.close()
+
+
+if __name__ == "__main__":
+    server = PrimeServer()
+    server.run()

@@ -91,3 +91,8 @@ class PrimeClient:
             primes = find_primes(start, end)
             self.send_result(primes)
         self.client_socket.close()
+
+
+if __name__ == "__main__":
+    client = PrimeClient()
+    client.run()

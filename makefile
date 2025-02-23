@@ -3,16 +3,22 @@ include .env
 .PHONY: train  autopep8 isort flake8
 
 #* Python Rules
-
-RUN_SRC = src
-
 server:
-	python $(RUN_SRC)/server.py
+	python src/server.py
 
 client:
-	python $(RUN_SRC)/client.py
+	python src/client.py
 
+#* Test Rules
 
+one:
+	python tests/oneClient.py
+
+multiple:
+	python tests/multipleClients.py
+
+isPrime:
+	python tests/isPrime.py
 
 #* Git Rules
 isort:
@@ -34,4 +40,4 @@ format: autoflake autopep8 isort
 
 check: flake8 pylint
 
-prepare-commit: autoflake autopep8 isort flake8 pylint
+prepare_commit: autoflake autopep8 isort flake8 pylint
