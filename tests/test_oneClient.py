@@ -34,6 +34,7 @@ class TestServerAndClient(unittest.TestCase):
         the "data" directory to verify that the server processed the client's
         requests and recorded the results.
         """
+        print("#"*25," Testando oneClient... ","#"*25)
         client_process = subprocess.Popen(['python', 'src/client.py'])
 
         client_process.wait()

@@ -29,6 +29,7 @@ class TestPrimeFile(unittest.TestCase):
         each number using the is_prime() function. If any number is not
         prime, the test fails.
         """
+        print("#"*25,"Testando isPrime...","#"*25)
         with open("data/primes.txt", "r") as file:
             primes = file.readlines()
 

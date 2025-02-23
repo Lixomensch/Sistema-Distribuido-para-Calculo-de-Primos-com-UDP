@@ -45,6 +45,7 @@ class TestMultipleClients(unittest.TestCase):
         The test can be used to verify that the server can handle multiple
         connections at the same time without problems.
         """
+        print("#"*25,"Testando multipleClients...","#"*25)
         client_threads = []
         for i in range(5):
             thread = threading.Thread(target=self.simulate_client)

@@ -12,13 +12,13 @@ client:
 #* Test Rules
 
 one:
-	python tests/oneClient.py
+	python tests/test_oneClient.py
 
 multiple:
-	python tests/multipleClients.py
+	python tests/test_multipleClients.py
 
 isPrime:
-	python tests/isPrime.py
+	python tests/test_isPrime.py
 
 #* Git Rules
 isort:
