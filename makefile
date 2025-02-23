@@ -2,6 +2,18 @@ include .env
 
 .PHONY: train  autopep8 isort flake8
 
+#* Python Rules
+
+RUN_SRC = src
+
+server:
+	python $(RUN_SRC)/server.py
+
+client:
+	python $(RUN_SRC)/client.py
+
+
+
 #* Git Rules
 isort:
 	isort --settings-path=$(MAKE_CONFIG_FILE) $(FORMAT_CHECK_SRC)
