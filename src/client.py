@@ -5,24 +5,24 @@ import socket
 
 def find_primes(start, end):
     """
-    Returns a list of prime numbers within the specified range [start, end].
+    Finds all prime numbers within a specified range using the Sieve of Eratosthenes algorithm.
 
     Args:
-        start (int): The beginning of the range (inclusive).
-        end (int): The end of the range (inclusive).
+        start (int): The starting number of the range (inclusive).
+        end (int): The ending number of the range (inclusive).
 
     Returns:
-        list: A list of prime numbers found within the specified range.
+        list: A list of prime numbers between the start and end values.
     """
-    primes = []
-    for num in range(start, end + 1):
-        if num > 1:
-            for i in range(2, int(num ** 0.5) + 1):
-                if num % i == 0:
-                    break
-            else:
-                primes.append(num)
-    return primes
+    primos = [True] * (end + 1)
+    primos[0] = primos[1] = False
+
+    for i in range(2, int(end ** 0.5) + 1):
+        if primos[i]:
+            for j in range(i * i, end + 1, i):
+                primos[j] = False
+
+    return [i for i in range(start, end + 1) if primos[i]]
 
 
 class PrimeClient:

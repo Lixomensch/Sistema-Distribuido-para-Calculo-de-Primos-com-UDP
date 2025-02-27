@@ -58,9 +58,10 @@ class PrimeServer:
             start = self.current_start
             end = min(start + self.chunk_size - 1, self.total_range[1])
             self.current_start = end + 1
+            # print(start, end)
             return (start, end)
 
-    def handle_client(self, data, client_address):
+    def handle_client(self, message, client_address):
         """
         Handles incoming client requests by processing task requests or results.
 
@@ -73,7 +74,6 @@ class PrimeServer:
         a "done" message is sent. If it's a "result", the list of prime numbers received is
         added to the server's list of primes.
         """
-        message = json.loads(data.decode('utf-8'))
         if message["type"] == "request":
             task = self.get_next_task()
             if task:
@@ -110,9 +110,12 @@ class PrimeServer:
         """
         while True:
             data, client_address = self.server_socket.recvfrom(4096)
-            self.handle_client(data, client_address)
-            if self.current_start > self.total_range[1]:
+            message = json.loads(data.decode('utf-8'))
+            self.handle_client(message, client_address)
+
+            if self.current_start > self.total_range[1] and message["type"] == "result":
                 break
+
         print(f"Total de primos encontrados: {len(self.prime_numbers)}")
         with open("data/primes.txt", "w", encoding="utf-8") as f:
             f.write("\n".join(map(str, self.prime_numbers)))
